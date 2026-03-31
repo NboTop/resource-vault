@@ -74,6 +74,7 @@ export default function SettingsView({ store }: { store: ReturnType<typeof useAp
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      store.clearLocalResources();
       showToast('Signed out successfully', 'success');
     } catch (error) {
       console.error('Sign out error:', error);
