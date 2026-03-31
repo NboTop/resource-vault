@@ -72,6 +72,9 @@ export function useAppStore() {
             handleFirestoreError(error, OperationType.WRITE, `users/${currentUser.uid}/resources`);
           }
         }
+      } else {
+        // Reset to sample data when logged out
+        setState(s => ({ ...s, resources: SAMPLE_DATA }));
       }
     });
     return () => unsubscribe();
@@ -85,10 +88,14 @@ export function useAppStore() {
       const q = query(collection(db, `users/${user.uid}/resources`));
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const resources: Resource[] = [];
+        const sampleIds = new Set(SAMPLE_DATA.map(r => r.id));
+        
         snapshot.forEach((doc) => {
           const data = doc.data();
-          // Remove userId from local state to match Resource type, or just cast it
-          resources.push(data as Resource);
+          // Filter out sample data that might have been synced previously
+          if (!sampleIds.has(data.id)) {
+            resources.push(data as Resource);
+          }
         });
         
         // Sort by createdAt descending
