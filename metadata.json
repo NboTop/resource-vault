@@ -1,0 +1,5 @@
+{
+  "name": "ResourceVault",
+  "description": "A personal resource organizer that automatically categorizes and organizes resources with minimal user effort.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users/{userId}/resources
+    // Document ID: {resourceId}
+    // Fields:
+    //   - id: string (required)
+    //   - title: string (required, max 200 chars)
+    //   - url: string (optional, max 1000 chars)
+    //   - category: string (required, max 100 chars)
+    //   - tags: list of strings (required, max 20 items, max 50 chars each)
+    //   - notes: string (required, max 5000 chars)
+    //   - priority: string (required, enum: 'Low', 'Medium', 'High')
+    //   - source: string (required, max 100 chars)
+    //   - status: string (required, enum: 'Saved', 'To Review', 'In Progress', 'Completed', 'Archived')
+    //   - createdAt: number (required)
+    //   - isAiCategorized: boolean (optional)
+    //   - userId: string (required, immutable, must match auth uid)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function uidUnchanged() {
+      return !('userId' in request.resource.data) || request.resource.data.userId == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidList(listField, maxSize, maxItemSize) {
+      return request.resource.data[listField] is list &&
+             request.resource.data[listField].size() <= maxSize;
+    }
+
+    function isValidResource(data) {
+      let requiredFields = ['id', 'title', 'category', 'tags', 'notes', 'priority', 'source', 'status', 'createdAt', 'userId'];
+      let allowedFields = ['id', 'title', 'url', 'category', 'tags', 'notes', 'priority', 'source', 'status', 'createdAt', 'isAiCategorized', 'userId'];
+      
+      return request.resource.data.keys().hasAll(requiredFields) &&
+             request.resource.data.keys().hasOnly(allowedFields) &&
+             validStringLength('id', 1, 100) &&
+             validStringLength('title', 1, 200) &&
+             isValidOptionalString('url', 0, 1000) &&
+             validStringLength('category', 1, 100) &&
+             isValidList('tags', 20, 50) &&
+             validStringLength('notes', 0, 5000) &&
+             request.resource.data.priority in ['Low', 'Medium', 'High'] &&
+             validStringLength('source', 1, 100) &&
+             request.resource.data.status in ['Saved', 'To Review', 'In Progress', 'Completed', 'Archived'] &&
+             request.resource.data.createdAt is number &&
+             (!('isAiCategorized' in request.resource.data) || request.resource.data.isAiCategorized is bool) &&
+             request.resource.data.userId == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId}/resources/{resourceId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidResource(request.resource.data) && uidUnchanged();
+      allow update: if isOwner(userId) && isValidResource(request.resource.data) && uidNotModified();
+      allow delete: if isOwner(userId);
+    }
+  }
+}

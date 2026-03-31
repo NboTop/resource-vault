@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "Resource": {
+      "title": "Resource",
+      "description": "A saved resource item",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the resource"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the resource"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL of the resource, can be null"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the resource"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags associated with the resource"
+        },
+        "notes": {
+          "type": "string",
+          "description": "User notes for the resource"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["Low", "Medium", "High"],
+          "description": "Priority level"
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the resource"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Saved", "To Review", "In Progress", "Completed", "Archived"],
+          "description": "Current status"
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp of creation"
+        },
+        "isAiCategorized": {
+          "type": "boolean",
+          "description": "Whether it was categorized by AI"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this resource"
+        }
+      },
+      "required": ["id", "title", "category", "tags", "notes", "priority", "source", "status", "createdAt", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/resources/{resourceId}": {
+      "schema": {
+        "$ref": "#/entities/Resource"
+      },
+      "description": "Resources saved by the user"
+    }
+  }
+}
