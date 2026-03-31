@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppState, Resource } from './types';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -43,6 +43,11 @@ export function useAppStore() {
     return DEFAULT_STATE;
   });
 
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   // Handle Auth State
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -51,7 +56,10 @@ export function useAppStore() {
       
       if (currentUser) {
         // Sync local resources to Firebase on login if they exist
-        const localResources = state.resources;
+        // Exclude sample data from being synced to the user's account
+        const sampleIds = new Set(SAMPLE_DATA.map(r => r.id));
+        const localResources = stateRef.current.resources.filter(r => !sampleIds.has(r.id));
+        
         if (localResources.length > 0) {
           try {
             const batch = writeBatch(db);
@@ -115,6 +123,7 @@ export function useAppStore() {
         });
       } catch (error) {
         handleFirestoreError(error, OperationType.CREATE, `users/${user.uid}/resources/${resource.id}`);
+        throw error;
       }
     } else {
       setState(s => ({ ...s, resources: [resource, ...s.resources] }));
@@ -127,6 +136,7 @@ export function useAppStore() {
         await setDoc(doc(db, `users/${user.uid}/resources`, id), updates, { merge: true });
       } catch (error) {
         handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}/resources/${id}`);
+        throw error;
       }
     } else {
       setState(s => ({
@@ -142,6 +152,7 @@ export function useAppStore() {
         await deleteDoc(doc(db, `users/${user.uid}/resources`, id));
       } catch (error) {
         handleFirestoreError(error, OperationType.DELETE, `users/${user.uid}/resources/${id}`);
+        throw error;
       }
     } else {
       setState(s => ({
@@ -194,6 +205,10 @@ export function useAppStore() {
     return false;
   };
 
+  const clearLocalResources = () => {
+    setState(s => ({ ...s, resources: SAMPLE_DATA }));
+  };
+
   return {
     state,
     user,
@@ -202,6 +217,7 @@ export function useAppStore() {
     deleteResource,
     updateSettings,
     clearAll,
-    importData
+    importData,
+    clearLocalResources
   };
 }
