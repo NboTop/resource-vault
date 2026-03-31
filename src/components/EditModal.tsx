@@ -19,17 +19,25 @@ export default function EditModal({ isOpen, onClose, resource, store }: { isOpen
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    store.updateResource(resource.id, formData);
-    showToast('Resource updated', 'success');
-    onClose();
+  const handleSave = async () => {
+    try {
+      await store.updateResource(resource.id, formData);
+      showToast('Resource updated', 'success');
+      onClose();
+    } catch (error) {
+      showToast('Failed to update resource', 'error');
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this resource?')) {
-      store.deleteResource(resource.id);
-      showToast('Resource deleted', 'info');
-      onClose();
+      try {
+        await store.deleteResource(resource.id);
+        showToast('Resource deleted', 'info');
+        onClose();
+      } catch (error) {
+        showToast('Failed to delete resource', 'error');
+      }
     }
   };
 
