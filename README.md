@@ -4,7 +4,7 @@
 
 **Stop losing useful links. Auto-organize everything you discover while scrolling.**
 
-[Live App](https://resource-vault-steel.vercel.app/) · [Report Bug](https://github.com/NboTop/resource-vault/issues) · [Request Feature](https://github.com/NboTop/resource-vault/issues)
+[Live App](https://n8i.vercel.app/) · [Report Bug](https://github.com/NboTop/resource-vault/issues) · [Request Feature](https://github.com/NboTop/resource-vault/issues)
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
