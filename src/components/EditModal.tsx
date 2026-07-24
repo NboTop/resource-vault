@@ -50,7 +50,7 @@ export default function EditModal({ isOpen, onClose, resource, store }: { isOpen
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[60]"
-            onClick={onClose}
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
           />
           <motion.div
             initial={{ y: '100%' }}
@@ -58,6 +58,7 @@ export default function EditModal({ isOpen, onClose, resource, store }: { isOpen
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed inset-x-0 bottom-0 h-[85vh] bg-bg-secondary rounded-t-[12px] z-[60] flex flex-col shadow-2xl max-w-3xl mx-auto"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="pt-4 pb-2 flex justify-center shrink-0">
               <div className="w-[36px] h-[4px] bg-border rounded-full" />
